@@ -17,8 +17,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .common import ContextProcessorTests
+from .settings import url_sso_settings
 
-__all__ = [
-    ContextProcessorTests
-]
+
+def login_urls(request):
+    """
+    Make sure SSO login URL's are available in the template context.
+    """
+
+    login_urls = {}
+    for sso_module in url_sso_settings.MODULES:
+        new_login_urls = sso_module.get_login_urls(request)
+
+        assert not filter(lambda x: x in login_urls, new_login_urls), \
+            'Login URL already present.'
+
+        # Add new URL's
+        login_urls.update(new_login_urls)
+
+    return login_urls

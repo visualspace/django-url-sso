@@ -17,8 +17,31 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .common import ContextProcessorTests
+from django.test import TestCase
+from django.test.utils import override_settings
+from django.test.client import RequestFactory
 
-__all__ = [
-    ContextProcessorTests
-]
+from django.contrib.auth.models import User
+
+from ..context_processors import login_urls
+
+
+class ContextProcessorTests(TestCase):
+    """ Test for context processor. """
+
+    def setUp(self):
+        # Every test needs access to the request factory.
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='john',
+            email='john_lennon@beatles.com',
+            password='top_secret'
+        )
+
+    @override_settings(URL_SSO_MODULES={})
+    def test_no_modules(self):
+        """ Test login URL's when no modules are configured. """
+
+        request = self.factory.get('/')
+
+        self.assertEquals(login_urls(request), {})

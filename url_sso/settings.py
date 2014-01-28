@@ -17,8 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .common import ContextProcessorTests
+from .utils import Settings
 
-__all__ = [
-    ContextProcessorTests
-]
+
+class UrlSSOSettings(Settings):
+    """ Settings specific to django-url-sso. """
+    settings_prefix = 'URL_SSO'
+
+    DEFAULT_MODULES = {}
+
+url_sso_settings = UrlSSOSettings()
