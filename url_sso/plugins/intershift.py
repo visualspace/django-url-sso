@@ -17,6 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .common import ContextProcessorTests
+""" SSO for Intershift http://www.intershift.nl/ """
 
-from .plugins.intershift import IntershiftTests
+from .utils import Singleton
+
+
+class IntershiftPlugin(object):
+    __metaclass__ = Singleton
+
+    bogus_dict = {
+        'MY_URL': 'https://www.bogus.com/some_token'
+    }
+
+    def get_login_urls(self, request):
+        return self.bogus_dict
+
+# Instantiate singleton
+intershift_plugin = IntershiftPlugin()

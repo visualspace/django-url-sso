@@ -17,6 +17,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .common import ContextProcessorTests
+""" Test utils. """
 
-from .plugins.intershift import IntershiftTests
+from django.contrib.auth.models import User
+
+
+class UserTestMixin(object):
+    """ TestCase mixin for tests requiring a logged in user. """
+
+    def setUp(self):
+        """ Create a local user and login. """
+
+        self.user = User.objects.create_user(
+            username='john',
+            email='john_lennon@beatles.com',
+            password='top_secret'
+        )
+
+        login_success = self.client.login(
+            username='john', password='top_secret'
+        )
+        assert login_success, 'Test login failed. Tests are broken.'

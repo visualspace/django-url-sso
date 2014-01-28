@@ -17,6 +17,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .common import ContextProcessorTests
+from django.test import TestCase
+from django.test.utils import override_settings
 
-from .plugins.intershift import IntershiftTests
+from ..utils import UserTestMixin
+
+
+@override_settings(URL_SSO_PLUGINS=[
+    'url_sso.plugins.intershift.intershift_plugin'
+])
+class IntershiftTests(UserTestMixin, TestCase):
+    """ Tests for Intershift SSO. """
+
+    pass

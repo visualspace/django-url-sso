@@ -22,8 +22,6 @@
 from django.test import TestCase
 from django.test.client import RequestFactory
 
-from django.contrib.auth.models import User
-
 from ..context_processors import login_urls
 
 from .mock_plugins import mock_plugin_one
@@ -37,12 +35,6 @@ class ContextProcessorTests(TestCase):
         self.factory = RequestFactory()
 
         self.request = self.factory.get('/')
-
-        self.user = User.objects.create_user(
-            username='john',
-            email='john_lennon@beatles.com',
-            password='top_secret'
-        )
 
     def test_no_plugins(self):
         """ Test login URL's when no plugins are configured. """
