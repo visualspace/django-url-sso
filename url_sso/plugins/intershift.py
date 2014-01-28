@@ -24,34 +24,16 @@ import urllib
 
 from lxml import etree
 
-from django.core.exceptions import ImproperlyConfigured
-
-from ..utils import Singleton
-from ..settings import url_sso_settings
+from url_sso.plugins.base import SSOPluginBase
 
 
-class IntershiftPlugin(object):
-    __metaclass__ = Singleton
-
-    def _get_settings(self):
-        """
-        Utility method for obtaining Intershift settings (such that they
-        can be updated for tests).
-        """
-
-        intershift_settings = getattr(url_sso_settings, 'INTERSHIFT', None)
-
-        if not intershift_settings:
-            raise ImproperlyConfigured(
-                'Intershift SSO settings not available.'
-            )
-
-        return intershift_settings
+class IntershiftPlugin(SSOPluginBase):
+    settings_name = 'INTERSHIFT'
 
     def _get_site_url(self, site_name):
         """ Util method to get site url from name. """
 
-        intershift_settings = self._get_settings()
+        intershift_settings = self.get_settings()
 
         assert 'sites' in intershift_settings
         assert site_name in intershift_settings['sites'].keys()
@@ -78,7 +60,7 @@ class IntershiftPlugin(object):
     def _request_login_key(self, site_name, username):
         """ Request and return login URL for a particular site and user. """
 
-        intershift_settings = self._get_settings()
+        intershift_settings = self.get_settings()
 
         assert 'secret' in intershift_settings
 
@@ -139,7 +121,7 @@ class IntershiftPlugin(object):
     def get_login_urls(self, request):
         """ Return login URLs  for all configured sites. """
 
-        intershift_settings = self._get_settings()
+        intershift_settings = self.get_settings()
 
         login_urls = {}
 

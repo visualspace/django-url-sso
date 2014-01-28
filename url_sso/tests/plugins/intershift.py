@@ -69,7 +69,7 @@ class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
     def test_get_settings(self):
         """ Test _get_settings() """
 
-        intershift_settings2 = intershift_plugin._get_settings()
+        intershift_settings2 = intershift_plugin.get_settings()
 
         self.assertEquals(intershift_settings, intershift_settings2)
 
