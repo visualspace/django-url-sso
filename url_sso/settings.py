@@ -24,6 +24,6 @@ class UrlSSOSettings(Settings):
     """ Settings specific to django-url-sso. """
     settings_prefix = 'URL_SSO'
 
-    DEFAULT_MODULES = {}
+    DEFAULT_MODULES = []
 
 url_sso_settings = UrlSSOSettings()

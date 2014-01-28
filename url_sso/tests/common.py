@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.test import TestCase
-from django.test.utils import override_settings
 from django.test.client import RequestFactory
 
 from django.contrib.auth.models import User
@@ -32,16 +31,31 @@ class ContextProcessorTests(TestCase):
     def setUp(self):
         # Every test needs access to the request factory.
         self.factory = RequestFactory()
+
+        self.request = self.factory.get('/')
+
         self.user = User.objects.create_user(
             username='john',
             email='john_lennon@beatles.com',
             password='top_secret'
         )
 
-    @override_settings(URL_SSO_MODULES={})
     def test_no_modules(self):
         """ Test login URL's when no modules are configured. """
 
-        request = self.factory.get('/')
+        with self.settings(URL_SSO_MODULES=[]):
+            self.assertEquals(login_urls(self.request), {})
 
-        self.assertEquals(login_urls(request), {})
+    def test_bogus_module(self):
+        """ Test with a bogus module. """
+
+        bogus_dict = {
+            'MY_URL': 'https://www.bogus.com/some_token'
+        }
+
+        class BogusModule(object):
+            def get_login_urls(self, request):
+                return bogus_dict
+
+        with self.settings(URL_SSO_MODULES=[BogusModule()]):
+            self.assertEquals(login_urls(self.request), bogus_dict)
