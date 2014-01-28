@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Mock modules used for testing. """
+""" Mock plugins used for testing. """
 
 from ..utils import Singleton
 
 
-class MockModuleOne(object):
+class MockPluginOne(object):
     __metaclass__ = Singleton
 
     bogus_dict = {
@@ -33,7 +33,7 @@ class MockModuleOne(object):
         return self.bogus_dict
 
 
-class MockModuleTwo(object):
+class MockPluginTwo(object):
     __metaclass__ = Singleton
 
     bogus_dict = {
@@ -45,5 +45,5 @@ class MockModuleTwo(object):
 
 
 # Instantiate singletons
-mock_module_one = MockModuleOne()
-mock_module_two = MockModuleTwo()
+mock_plugin_one = MockPluginOne()
+mock_plugin_two = MockPluginTwo()

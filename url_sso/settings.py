@@ -28,27 +28,27 @@ class UrlSSOSettings(SettingsBase):
     settings_prefix = 'URL_SSO'
 
     @property
-    def MODULES(self):
-        """ Instantiate URL SSO modules from import path. """
+    def PLUGINS(self):
+        """ Instantiate URL SSO plugins from import path. """
 
-        url_sso_modules = getattr(
-            django_settings, "URL_SSO_MODULES", []
+        url_sso_plugins = getattr(
+            django_settings, "URL_SSO_PLUGINS", []
         )
 
-        if url_sso_modules:
+        if url_sso_plugins:
             try:
-                url_sso_modules = map(import_object, url_sso_modules)
+                url_sso_plugins = map(import_object, url_sso_plugins)
 
             except Exception as e:
                 # Catch ImportError and other exceptions too
                 # (e.g. user sets setting to an integer)
                 raise ImproperlyConfigured(
                     "Error while importing setting "
-                    "URL_SSO_MODULES %r: %s" % (
-                        url_sso_modules, e
+                    "URL_SSO_PLUGINS %r: %s" % (
+                        url_sso_plugins, e
                     )
                 )
 
-        return url_sso_modules
+        return url_sso_plugins
 
 url_sso_settings = UrlSSOSettings()

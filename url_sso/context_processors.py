@@ -26,11 +26,11 @@ def login_urls(request):
     """
 
     login_urls = {}
-    for sso_module in url_sso_settings.MODULES:
-        assert hasattr(sso_module, 'get_login_urls'), \
-            'No get_login_urls in SSO module.'
+    for sso_plugin in url_sso_settings.PLUGINS:
+        assert hasattr(sso_plugin, 'get_login_urls'), \
+            'No get_login_urls in SSO plugin.'
 
-        new_login_urls = sso_module.get_login_urls(request)
+        new_login_urls = sso_plugin.get_login_urls(request)
 
         assert not filter(lambda x: x in login_urls, new_login_urls), \
             'Login URL already present.'

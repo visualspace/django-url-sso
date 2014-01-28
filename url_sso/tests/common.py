@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+""" Common tests seperate from plugins. """
+
 from django.test import TestCase
 from django.test.client import RequestFactory
 
@@ -24,7 +26,7 @@ from django.contrib.auth.models import User
 
 from ..context_processors import login_urls
 
-from .mock_modules import mock_module_one
+from .mock_plugins import mock_plugin_one
 
 
 class ContextProcessorTests(TestCase):
@@ -42,33 +44,33 @@ class ContextProcessorTests(TestCase):
             password='top_secret'
         )
 
-    def test_no_modules(self):
-        """ Test login URL's when no modules are configured. """
+    def test_no_plugins(self):
+        """ Test login URL's when no plugins are configured. """
 
-        with self.settings(URL_SSO_MODULES=[]):
+        with self.settings(URL_SSO_PLUGINS=[]):
             self.assertEquals(login_urls(self.request), {})
 
-    def test_mock_module(self):
-        """ Test with a mock module. """
+    def test_mock_plugin(self):
+        """ Test with a mock plugin. """
 
-        sso_modules = ['url_sso.tests.mock_modules.mock_module_one']
+        sso_plugins = ['url_sso.tests.mock_plugins.mock_plugin_one']
 
-        with self.settings(URL_SSO_MODULES=sso_modules):
+        with self.settings(URL_SSO_PLUGINS=sso_plugins):
 
             self.assertEquals(
                 login_urls(self.request),
-                mock_module_one.bogus_dict
+                mock_plugin_one.bogus_dict
             )
 
-    def test_two_modules(self):
-        """ Test with two bogus modules. """
+    def test_two_plugins(self):
+        """ Test with two bogus plugins. """
 
-        sso_modules = [
-            'url_sso.tests.mock_modules.mock_module_one',
-            'url_sso.tests.mock_modules.mock_module_two'
+        sso_plugins = [
+            'url_sso.tests.mock_plugins.mock_plugin_one',
+            'url_sso.tests.mock_plugins.mock_plugin_two'
         ]
 
-        with self.settings(URL_SSO_MODULES=sso_modules):
+        with self.settings(URL_SSO_PLUGINS=sso_plugins):
 
             self.assertEquals(
                 login_urls(self.request),
