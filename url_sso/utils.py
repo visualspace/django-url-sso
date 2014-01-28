@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings as django_settings
+from django.utils.importlib import import_module
 
 
 class Singleton(type):
@@ -37,7 +38,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-class Settings(object):
+class SettingsBase(object):
     """
     A settings object that proxies settings and handles defaults, inspired
     by `django-appconf` and the way it works  in `django-rest-framework`.
@@ -89,3 +90,11 @@ class Settings(object):
             raise AttributeError(
                 'No setting or default available for \'%s\'' % attr
             )
+
+
+def import_object(from_path):
+    """ Given an import path, return the object it represents. """
+
+    module, attr = from_path.rsplit(".", 1)
+    mod = import_module(module)
+    return getattr(mod, attr)

@@ -17,13 +17,38 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .utils import Settings
+from django.conf import settings as django_settings
+from django.core.exceptions import ImproperlyConfigured
+
+from .utils import SettingsBase, import_object
 
 
-class UrlSSOSettings(Settings):
+class UrlSSOSettings(SettingsBase):
     """ Settings specific to django-url-sso. """
     settings_prefix = 'URL_SSO'
 
-    DEFAULT_MODULES = []
+    @property
+    def MODULES(self):
+        """ Instantiate URL SSO modules from import path. """
+
+        url_sso_modules = getattr(
+            django_settings, "URL_SSO_MODULES", []
+        )
+
+        if url_sso_modules:
+            try:
+                url_sso_modules = map(import_object, url_sso_modules)
+
+            except Exception as e:
+                # Catch ImportError and other exceptions too
+                # (e.g. user sets setting to an integer)
+                raise ImproperlyConfigured(
+                    "Error while importing setting "
+                    "URL_SSO_MODULES %r: %s" % (
+                        url_sso_modules, e
+                    )
+                )
+
+        return url_sso_modules
 
 url_sso_settings = UrlSSOSettings()

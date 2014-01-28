@@ -24,6 +24,8 @@ from django.contrib.auth.models import User
 
 from ..context_processors import login_urls
 
+from .mock_modules import mock_module_one
+
 
 class ContextProcessorTests(TestCase):
     """ Test for context processor. """
@@ -46,16 +48,32 @@ class ContextProcessorTests(TestCase):
         with self.settings(URL_SSO_MODULES=[]):
             self.assertEquals(login_urls(self.request), {})
 
-    def test_bogus_module(self):
-        """ Test with a bogus module. """
+    def test_mock_module(self):
+        """ Test with a mock module. """
 
-        bogus_dict = {
-            'MY_URL': 'https://www.bogus.com/some_token'
-        }
+        sso_modules = ['url_sso.tests.mock_modules.mock_module_one']
 
-        class BogusModule(object):
-            def get_login_urls(self, request):
-                return bogus_dict
+        with self.settings(URL_SSO_MODULES=sso_modules):
 
-        with self.settings(URL_SSO_MODULES=[BogusModule()]):
-            self.assertEquals(login_urls(self.request), bogus_dict)
+            self.assertEquals(
+                login_urls(self.request),
+                mock_module_one.bogus_dict
+            )
+
+    def test_two_modules(self):
+        """ Test with two bogus modules. """
+
+        sso_modules = [
+            'url_sso.tests.mock_modules.mock_module_one',
+            'url_sso.tests.mock_modules.mock_module_two'
+        ]
+
+        with self.settings(URL_SSO_MODULES=sso_modules):
+
+            self.assertEquals(
+                login_urls(self.request),
+                {
+                    'MY_URL': 'https://www.bogus.com/some_token',
+                    'OTHER_URL': 'https://www.bogus.com/other_token'
+                }
+            )
