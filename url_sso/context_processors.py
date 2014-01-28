@@ -17,7 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+logger = logging.getLogger(__name__)
+
 from .settings import url_sso_settings
+from .exceptions import RequestKeyException
 
 
 def login_urls(request):
@@ -30,7 +34,16 @@ def login_urls(request):
         assert hasattr(sso_plugin, 'get_login_urls'), \
             'No get_login_urls in SSO plugin.'
 
-        new_login_urls = sso_plugin.get_login_urls(request)
+        try:
+            new_login_urls = sso_plugin.get_login_urls(request)
+        except RequestKeyException:
+            # Log the stack trace but don't make the context processor fail
+            logger.exception(
+                'Error requesting login key for %(plugin)s', sso_plugin
+            )
+
+            # Continue to next SSO plugin
+            continue
 
         assert not filter(lambda x: x in login_urls, new_login_urls), \
             'Login URL already present.'

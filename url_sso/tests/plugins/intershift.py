@@ -25,6 +25,7 @@ from django.test.utils import override_settings
 from url_sso.context_processors import login_urls
 from url_sso.plugins.intershift import intershift_plugin
 from url_sso.tests.utils import RequestTestMixin, UserTestMixin
+from url_sso.exceptions import RequestKeyException
 
 
 # Setup sensible test settings
@@ -96,7 +97,7 @@ class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
         # Invalid XML should yield exception
         invalid_xml = 'banana'
         self.assertRaises(
-            Exception,
+            RequestKeyException,
             lambda: intershift_plugin._parse_login_key(invalid_xml)
         )
 
@@ -104,7 +105,7 @@ class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
         empty_key = \
             '<?XML VERSION="1.0" Encoding="UTF-8"?><xml><key value="" /></xml>'
         self.assertRaises(
-            Exception,
+            RequestKeyException,
             lambda: intershift_plugin._parse_login_key(empty_key)
         )
 
@@ -134,7 +135,7 @@ class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
 
         with HTTMock(mock_servererror):
             self.assertRaises(
-                Exception,
+                RequestKeyException,
                 lambda: intershift_plugin._request_login_key(
                     'site1', self.user.username
                 )
@@ -148,7 +149,7 @@ class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
 
         with HTTMock(mock_empty):
             self.assertRaises(
-                Exception,
+                RequestKeyException,
                 lambda: intershift_plugin._request_login_key(
                     'site1', self.user.username
                 )

@@ -21,10 +21,12 @@
 
 import requests
 import urllib
+import sys
 
 from lxml import etree
 
 from url_sso.plugins.base import SSOPluginBase
+from url_sso.exceptions import RequestKeyException
 
 
 class IntershiftPlugin(SSOPluginBase):
@@ -47,13 +49,18 @@ class IntershiftPlugin(SSOPluginBase):
         # Use parse with recovery enabled
         parser = etree.XMLParser(recover=True)
 
-        root = etree.fromstring(data, parser)
-
-        key_element = root.find('key')
-        value = key_element.get('value')
+        try:
+            root = etree.fromstring(data, parser)
+            key_element = root.find('key')
+            value = key_element.get('value')
+        except Exception, e:
+            # Raise exception, retaining original traceback
+            traceback = sys.exc_info()[2]
+            raise RequestKeyException('Error parsing XML: %s' % e), \
+                None, traceback
 
         if not value:
-            raise Exception('No value found in login key response.')
+            raise RequestKeyException('No value found in login key response.')
 
         return value
 
@@ -75,12 +82,12 @@ class IntershiftPlugin(SSOPluginBase):
         )
 
         if not r.status_code == 200:
-            raise Exception(
+            raise RequestKeyException(
                 'Request returned an error status.'
             )
 
         if not r.content:
-            raise Exception(
+            raise RequestKeyException(
                 'Login key request returned no content.'
             )
 
