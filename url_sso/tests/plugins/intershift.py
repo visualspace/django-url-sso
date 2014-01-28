@@ -30,7 +30,9 @@ from url_sso.exceptions import RequestKeyException
 
 # Setup sensible test settings
 intershift_settings = {
+    # Secret key as specified by Intershift
     'secret': '12345678',
+    # Sites enabled for SSO
     'sites': {
         'site1': {
             # Users never have access to site1
@@ -38,7 +40,7 @@ intershift_settings = {
             'url': 'https://customer1.intershift.nl/site1/cust/singlesignon.asp',
         },
         'site2': {
-            # Users always haev acces to site2
+            # Users always have acces to site2
             'has_access': lambda request: True,
             'url': 'https://customer1.intershift.nl/site2/cust/singlesignon.asp',
         },
@@ -46,7 +48,9 @@ intershift_settings = {
             # No explicit access rules; same result as site2
             'url': 'https://customer1.intershift.nl/site3/cust/singlesignon.asp',
         },
-    }
+    },
+    # Key expiration in seconds, use one day here
+    'key_expiration': 86400
 }
 
 sso_settings = {
@@ -155,6 +159,31 @@ class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
             return self.test_xml
 
         with HTTMock(key_mock):
+            login_url = intershift_plugin._generate_login_url(
+                'site1', self.user.username
+            )
+
+        self.assertEquals(
+            login_url,
+            self.test_login_url
+        )
+
+    def test_generate_login_url_cache(self):
+        """ Test caching for _generate_login_url() """
+
+        def key_mock(url, request):
+            return self.test_xml
+
+        # Populate cache
+        with HTTMock(key_mock):
+            intershift_plugin._generate_login_url(
+                'site1', self.user.username
+            )
+
+        def fail_mock(url, request):
+            self.fail('Request should not be fired when using cache.')
+
+        with HTTMock(fail_mock):
             login_url = intershift_plugin._generate_login_url(
                 'site1', self.user.username
             )

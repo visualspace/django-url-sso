@@ -24,6 +24,8 @@ import sys
 
 from lxml import etree
 
+from django.core.cache import cache
+
 from url_sso.plugins.base import SSOPluginBase
 from url_sso.exceptions import RequestKeyException
 
@@ -91,21 +93,41 @@ class IntershiftPlugin(SSOPluginBase):
 
         return self._parse_login_key(r.content)
 
+    def _get_cache_key(self, site_name, username):
+        """ Return a sensible cache key for site and username """
+        return 'intershift_sso_{site}_{user}'.format(
+            site=site_name, user=username
+        )
+
     def _generate_login_url(self, site_name, username):
         """ Generate and return a login URL from site_name and username. """
 
-        # Get site URL
-        site_url = self._get_site_url(site_name)
+        intershift_settings = self.get_settings()
 
-        # Fetch a login key
-        login_key = self._request_login_key(site_name, username)
+        cache_key = self._get_cache_key(site_name, username)
+        cache_timeout = intershift_settings['key_expiration']
 
-        params = urllib.urlencode({
-            'user': username,
-            'key': login_key
-        })
+        # Attempt to get key from cache
+        login_url = cache.get(cache_key)
+        if not login_url:
+            # Fetch a login key
+            login_key = self._request_login_key(site_name, username)
 
-        return '{url}?{params}'.format(url=site_url, params=params)
+            # Get site URL
+            site_url = self._get_site_url(site_name)
+
+            params = urllib.urlencode({
+                'user': username,
+                'key': login_key
+            })
+
+            # Generate login url
+            login_url = '{url}?{params}'.format(url=site_url, params=params)
+
+            # Store cached value for later use
+            cache.set(cache_key, login_url, cache_timeout)
+
+        return login_url
 
     def _get_login_url_key(self, site_name):
         """ Utility method returning context key for login URL. """
@@ -124,7 +146,7 @@ class IntershiftPlugin(SSOPluginBase):
         return self._generate_login_url(site_name, user.username)
 
     def get_login_urls(self, request):
-        """ Return login URLs  for all configured sites. """
+        """ Return login URLs for all configured sites. """
 
         intershift_settings = self.get_settings()
 
