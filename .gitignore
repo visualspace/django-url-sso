@@ -1,0 +1,10 @@
+*.py[co]
+build
+dist
+MANIFEST
+*.egg*
+distribute-*
+.DS_Store
+pep8*
+coverage*
+django_setuptest*
