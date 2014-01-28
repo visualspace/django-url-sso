@@ -67,13 +67,6 @@ class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
         'INTERSHIFT_SITE3_SSO_URL': 'https://customer1.intershift.nl/site3/cust/singlesignon.asp?user=john&key=BOGUSKEY'
     }
 
-    def test_get_settings(self):
-        """ Test _get_settings() """
-
-        intershift_settings2 = intershift_plugin.get_settings()
-
-        self.assertEquals(intershift_settings, intershift_settings2)
-
     def test_get_site_url(self):
         """ Test _get_site_url() """
 

@@ -27,6 +27,8 @@ class UrlSSOSettings(SettingsBase):
     """ Settings specific to django-url-sso. """
     settings_prefix = 'URL_SSO'
 
+    DEFAULT_REQUEST_TIMEOUT = 5
+
     @property
     def PLUGINS(self):
         """ Instantiate URL SSO plugins from import path. """

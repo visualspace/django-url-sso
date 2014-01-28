@@ -19,11 +19,11 @@
 
 """ Mock plugins used for testing. """
 
-from url_sso.utils import Singleton
+from url_sso.plugins.base import SSOPluginBase
 
 
-class MockPluginOne(object):
-    __metaclass__ = Singleton
+class MockPluginOne(SSOPluginBase):
+    settings_name = 'ONE'
 
     bogus_dict = {
         'MY_URL': 'https://www.bogus.com/some_token'
@@ -33,8 +33,8 @@ class MockPluginOne(object):
         return self.bogus_dict
 
 
-class MockPluginTwo(object):
-    __metaclass__ = Singleton
+class MockPluginTwo(SSOPluginBase):
+    settings_name = 'TWO'
 
     bogus_dict = {
         'OTHER_URL': 'https://www.bogus.com/other_token'

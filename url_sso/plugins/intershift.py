@@ -19,7 +19,6 @@
 
 """ SSO for Intershift http://www.intershift.nl/ """
 
-import requests
 import urllib
 import sys
 
@@ -72,13 +71,12 @@ class IntershiftPlugin(SSOPluginBase):
         assert 'secret' in intershift_settings
 
         # Send out request
-        r = requests.get(
+        r = self.get_url(
             self._get_site_url(site_name),
             params={
                 'user': username,
                 'secret': intershift_settings['secret']
-            },
-            verify=True
+            }
         )
 
         if not r.status_code == 200:

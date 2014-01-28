@@ -18,4 +18,5 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .context_processor import ContextProcessorTests
+from .plugins.base import BaseTests
 from .plugins.intershift import IntershiftTests

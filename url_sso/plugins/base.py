@@ -17,10 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+import requests
+
 from django.core.exceptions import ImproperlyConfigured
 
 from url_sso.utils import Singleton
 from url_sso.settings import url_sso_settings
+from url_sso.exceptions import RequestKeyException
 
 
 class SSOPluginBase(object):
@@ -51,7 +55,25 @@ class SSOPluginBase(object):
 
         if not settings:
             raise ImproperlyConfigured(
-                'Intershift SSO settings not available.'
+                'Settings not available for %s.' % self.__class__
             )
 
         return settings
+
+    def get_url(self, url, params={}):
+        """
+        Wrapper around requests.get() using sensible defaults.
+        """
+
+        try:
+            r = requests.get(
+                url, params=params,
+                verify=True, timeout=url_sso_settings.REQUEST_TIMEOUT
+            )
+        except requests.exceptions.RequestException, e:
+            # Raise exception, retaining original traceback
+            traceback = sys.exc_info()[2]
+            raise RequestKeyException('Error with HTTP request: %s' % e), \
+                None, traceback
+
+        return r
