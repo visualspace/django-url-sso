@@ -20,30 +20,25 @@
 """ Common tests seperate from plugins. """
 
 from django.test import TestCase
-from django.test.client import RequestFactory
 
-from ..context_processors import login_urls
+from url_sso.context_processors import login_urls
 
 from .mock_plugins import mock_plugin_one
 
+from .utils import RequestTestMixin
 
-class ContextProcessorTests(TestCase):
+
+class ContextProcessorTests(RequestTestMixin, TestCase):
     """ Test for context processor. """
 
-    def setUp(self):
-        # Every test needs access to the request factory.
-        self.factory = RequestFactory()
-
-        self.request = self.factory.get('/')
-
     def test_no_plugins(self):
-        """ Test login URL's when no plugins are configured. """
+        """ Test login URL's when no plugins are configured """
 
         with self.settings(URL_SSO_PLUGINS=[]):
             self.assertEquals(login_urls(self.request), {})
 
     def test_mock_plugin(self):
-        """ Test with a mock plugin. """
+        """ Test with a mock plugin """
 
         sso_plugins = ['url_sso.tests.mock_plugins.mock_plugin_one']
 
@@ -55,7 +50,7 @@ class ContextProcessorTests(TestCase):
             )
 
     def test_two_plugins(self):
-        """ Test with two bogus plugins. """
+        """ Test with two bogus plugins """
 
         sso_plugins = [
             'url_sso.tests.mock_plugins.mock_plugin_one',

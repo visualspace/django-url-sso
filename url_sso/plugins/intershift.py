@@ -83,7 +83,7 @@ class IntershiftPlugin(object):
         assert 'secret' in intershift_settings
 
         # Send out request
-        r = requests(
+        r = requests.get(
             self._get_site_url(site_name),
             params={
                 'user': username,
@@ -115,7 +115,7 @@ class IntershiftPlugin(object):
 
         params = urllib.urlencode({
             'user': username,
-            'login_key': login_key
+            'key': login_key
         })
 
         return '{url}?{params}'.format(url=site_url, params=params)
@@ -129,13 +129,12 @@ class IntershiftPlugin(object):
             site=site_name.upper()
         )
 
-    def get_login_url(self, site_name, request):
+    def _get_login_url(self, site_name, user):
         """ Return login URL for a particular configured site and user. """
 
-        assert request.user.is_authenticated(), 'User not authenticated.'
-        username = request.user.username
+        assert user.is_authenticated(), 'User not authenticated.'
 
-        return self._generate_login_url(site_name, username)
+        return self._generate_login_url(site_name, user.username)
 
     def get_login_urls(self, request):
         """ Return login URLs  for all configured sites. """
@@ -149,14 +148,14 @@ class IntershiftPlugin(object):
             for site_name, site in intershift_settings['sites'].iteritems():
 
                 # Determine whether user has access rights
-                has_access = site.get('has_access', None)
-                if has_access and not has_access():
+                has_access = site.get('has_access', lambda request: True)
+                if not has_access(request):
                     # has_access(request) is defined and user does not have
                     # access to this site - skip.
                     continue
 
                 # Get login URL for site and request (user)
-                login_url = self.get_login_url(site_name, request)
+                login_url = self._get_login_url(site_name, request.user)
 
                 # Generate name for URL in context
                 login_url_key = self._get_login_url_key(site_name)

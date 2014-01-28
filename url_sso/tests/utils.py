@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Test utils. """
+""" Test utils """
 
+from django.test.client import RequestFactory
 from django.contrib.auth.models import User
 
 
@@ -26,7 +27,7 @@ class UserTestMixin(object):
     """ TestCase mixin for tests requiring a logged in user. """
 
     def setUp(self):
-        """ Create a local user and login. """
+        """ Create a local user and login """
 
         self.user = User.objects.create_user(
             username='john',
@@ -38,3 +39,19 @@ class UserTestMixin(object):
             username='john', password='top_secret'
         )
         assert login_success, 'Test login failed. Tests are broken.'
+
+        # Call super
+        super(UserTestMixin, self).setUp()
+
+
+class RequestTestMixin(object):
+    """ TestCase mixin for tests requiring a request. """
+
+    def setUp(self):
+        """ Create request object for '/' URL """
+
+        self.factory = RequestFactory()
+        self.request = self.factory.get('/')
+
+        # Call super
+        super(RequestTestMixin, self).setUp()

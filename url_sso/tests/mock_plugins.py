@@ -19,7 +19,7 @@
 
 """ Mock plugins used for testing. """
 
-from ..utils import Singleton
+from url_sso.utils import Singleton
 
 
 class MockPluginOne(object):

@@ -17,16 +17,210 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from httmock import urlmatch, HTTMock
+
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ..utils import UserTestMixin
+from url_sso.context_processors import login_urls
+from url_sso.plugins.intershift import intershift_plugin
+from url_sso.tests.utils import RequestTestMixin, UserTestMixin
 
 
-@override_settings(URL_SSO_PLUGINS=[
-    'url_sso.plugins.intershift.intershift_plugin'
-])
-class IntershiftTests(UserTestMixin, TestCase):
+# Setup sensible test settings
+intershift_settings = {
+    'secret': '12345678',
+    'sites': {
+        'site1': {
+            # Users never have access to site1
+            'has_access': lambda request: False,
+            'url': 'https://customer1.intershift.nl/site1/cust/singlesignon.asp',
+        },
+        'site2': {
+            # Users always haev acces to site2
+            'has_access': lambda request: True,
+            'url': 'https://customer1.intershift.nl/site2/cust/singlesignon.asp',
+        },
+        'site3': {
+            # No explicit access rules; same result as site2
+            'url': 'https://customer1.intershift.nl/site3/cust/singlesignon.asp',
+        },
+    }
+}
+
+sso_settings = {
+    'URL_SSO_PLUGINS': ['url_sso.plugins.intershift.intershift_plugin'],
+    'URL_SSO_INTERSHIFT': intershift_settings
+}
+
+
+@override_settings(**sso_settings)
+class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
     """ Tests for Intershift SSO. """
 
-    pass
+    test_key = 'BOGUSKEY'
+    test_xml = '<?XML VERSION="1.0" Encoding="UTF-8"?><xml><key value="BOGUSKEY" /></xml>'
+    test_login_url = 'https://customer1.intershift.nl/site1/cust/singlesignon.asp?user=john&key=BOGUSKEY'
+    test_login_urls = {
+        'INTERSHIFT_SITE2_SSO_URL': 'https://customer1.intershift.nl/site2/cust/singlesignon.asp?user=john&key=BOGUSKEY',
+        'INTERSHIFT_SITE3_SSO_URL': 'https://customer1.intershift.nl/site3/cust/singlesignon.asp?user=john&key=BOGUSKEY'
+    }
+
+    def test_get_settings(self):
+        """ Test _get_settings() """
+
+        intershift_settings2 = intershift_plugin._get_settings()
+
+        self.assertEquals(intershift_settings, intershift_settings2)
+
+    def test_get_site_url(self):
+        """ Test _get_site_url() """
+
+        site_url = intershift_plugin._get_site_url('site1')
+
+        self.assertEquals(
+            site_url,
+            intershift_settings['sites']['site1']['url']
+        )
+
+    def test_parse_login_key(self):
+        """ Test _parse_login_key() """
+
+        login_key = intershift_plugin._parse_login_key(self.test_xml)
+
+        self.assertEquals(login_key, self.test_key)
+
+    def test_parse_login_key_exceptions(self):
+        """ Test for exception on invalid key """
+
+        # Invalid XML should yield exception
+        invalid_xml = 'banana'
+        self.assertRaises(
+            Exception,
+            lambda: intershift_plugin._parse_login_key(invalid_xml)
+        )
+
+        # Empty key should raise an exception as well
+        empty_key = \
+            '<?XML VERSION="1.0" Encoding="UTF-8"?><xml><key value="" /></xml>'
+        self.assertRaises(
+            Exception,
+            lambda: intershift_plugin._parse_login_key(empty_key)
+        )
+
+    def test_request_login_key(self):
+        """ Test _request_login_key() """
+
+        @urlmatch(
+            scheme='https',
+            netloc='customer1.intershift.nl',
+            path='/site1/cust/singlesignon.asp'
+        )
+        def key_mock(url, request):
+            return self.test_xml
+
+        with HTTMock(key_mock):
+            login_key = intershift_plugin._request_login_key(
+                site_name='site1', username=self.user.username
+            )
+
+        self.assertEquals(login_key, self.test_key)
+
+    def test_request_login_500(self):
+        """ Test exceptions on 500 in _request_login_key() """
+
+        def mock_servererror(url, request):
+            return {'status_code': 500}
+
+        with HTTMock(mock_servererror):
+            self.assertRaises(
+                Exception,
+                lambda: intershift_plugin._request_login_key(
+                    'site1', self.user.username
+                )
+            )
+
+    def test_request_login_empty(self):
+        """ Test exception on empty answer from _request_login_key() """
+
+        def mock_empty(url, request):
+            return ''
+
+        with HTTMock(mock_empty):
+            self.assertRaises(
+                Exception,
+                lambda: intershift_plugin._request_login_key(
+                    'site1', self.user.username
+                )
+            )
+
+    def test_generate_login_url(self):
+        """ Test _generate_login_url() """
+
+        def key_mock(url, request):
+            return self.test_xml
+
+        with HTTMock(key_mock):
+            login_url = intershift_plugin._generate_login_url(
+                'site1', self.user.username
+            )
+
+        self.assertEquals(
+            login_url,
+            self.test_login_url
+        )
+
+    def test_get_login_url_key(self):
+        """ Test _get_login_url_key() """
+
+        self.assertEquals(
+            intershift_plugin._get_login_url_key('site1'),
+            'INTERSHIFT_SITE1_SSO_URL'
+        )
+
+    def test_get_login_url(self):
+        """ Test _get_login_url() """
+
+        def key_mock(url, request):
+            return self.test_xml
+
+        with HTTMock(key_mock):
+            login_url = intershift_plugin._get_login_url('site1', self.user)
+
+        self.assertEquals(login_url, self.test_login_url)
+
+    def test_get_login_urls(self):
+        """ Test _get_login_urls() """
+
+        # Make sure user is set on the request
+        self.request.user = self.user
+
+        def key_mock(url, request):
+            return self.test_xml
+
+        with HTTMock(key_mock):
+            urls = intershift_plugin.get_login_urls(self.request)
+
+        # Note: site1 is setup with has_access returning False so a login URL
+        # should not be available. Hence, only site2 and site4 are available.
+        self.assertEquals(
+            urls,
+            self.test_login_urls
+        )
+
+    def test_integration(self):
+        """ Test integration with login_urls() RequestContextProcessor """
+
+        # Make sure user is set on the request
+        self.request.user = self.user
+
+        def key_mock(url, request):
+            return self.test_xml
+
+        with HTTMock(key_mock):
+            context = login_urls(self.request)
+
+            self.assertEquals(
+                context,
+                self.test_login_urls
+            )
