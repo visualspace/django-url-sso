@@ -32,6 +32,11 @@ class SSOPluginBase(object):
 
     __metaclass__ = Singleton
 
+    def __init__(self):
+        """ Setup a Requests session. """
+
+        self.session = requests.Session()
+
     def get_settings(self):
         """
         Utility method for obtaining plugin settings (such that they
@@ -66,7 +71,7 @@ class SSOPluginBase(object):
         """
 
         try:
-            r = requests.get(
+            r = self.session.get(
                 url, params=params,
                 verify=True, timeout=url_sso_settings.REQUEST_TIMEOUT
             )
