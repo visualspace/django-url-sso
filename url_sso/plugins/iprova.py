@@ -141,3 +141,7 @@ class iProvaPlugin(SSOPluginBase):
 
         # Not logged in, return no login URL's
         return {}
+
+
+# Instantiate singleton
+iprova_plugin = iProvaPlugin()

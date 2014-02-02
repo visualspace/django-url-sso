@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from mock import Mock, patch
+
 from django.test import TestCase
 from django.test.utils import override_settings
 
@@ -49,11 +51,30 @@ sso_settings = {
 class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
     """ Tests for iProva SSO """
 
-    def test_get_webservice(self):
+    @patch('suds.client.Client')
+    def test_get_webservice(self, mock_method):
         """ Test _get_webservice() """
-        pass
+        class MockMonkey(object):
+            service = 'nice'
 
-    def test_request_token(self):
+        mock_method.return_value = MockMonkey
+        returned_service = iprova_plugin._get_webservice()
+
+        # Basically, all we can test is whether it returns something
+        self.assertEquals(returned_service, 'nice')
+
+        mock_method.assert_called_once()
+
+        # Make sure the proper URL is used in one of the arguments
+        self.assertIn(
+            'http://intranet.organisation.com/'
+            'Management/Webservices/UserManagementAPI.asmx?WSDL',
+            # Merge positional and keyword arguments
+            list(mock_method.call_args[0]) + mock_method.call_args[1].values()
+        )
+
+    @patch('suds.client.Client')
+    def test_request_token(self, mock_method):
         """ Test _request_token() """
         pass
 

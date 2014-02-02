@@ -4,3 +4,4 @@ httmock
 lxml
 suds
 suds_requests
+mock

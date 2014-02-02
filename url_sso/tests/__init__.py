@@ -20,3 +20,4 @@
 from .context_processor import ContextProcessorTests
 from .plugins.base import BaseTests
 from .plugins.intershift import IntershiftTests
+from .plugins.iprova import iProvaTests
