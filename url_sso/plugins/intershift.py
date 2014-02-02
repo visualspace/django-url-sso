@@ -36,13 +36,13 @@ class IntershiftPlugin(SSOPluginBase):
     def _get_site_url(self, site_name):
         """ Util method to get site url from name. """
 
-        intershift_settings = self.get_settings()
+        settings = self.get_settings()
 
-        assert 'sites' in intershift_settings
-        assert site_name in intershift_settings['sites'].keys()
-        assert 'url' in intershift_settings['sites'][site_name]
+        assert 'sites' in settings
+        assert site_name in settings['sites'].keys()
+        assert 'url' in settings['sites'][site_name]
 
-        return intershift_settings['sites'][site_name]['url']
+        return settings['sites'][site_name]['url']
 
     def _parse_login_key(self, data):
         """ Parse returned (broken) XML and return loginkey. """
@@ -68,16 +68,16 @@ class IntershiftPlugin(SSOPluginBase):
     def _request_login_key(self, site_name, username):
         """ Request and return login URL for a particular site and user. """
 
-        intershift_settings = self.get_settings()
+        settings = self.get_settings()
 
-        assert 'secret' in intershift_settings
+        assert 'secret' in settings
 
         # Send out request
         r = self.get_url(
             self._get_site_url(site_name),
             params={
                 'user': username,
-                'secret': intershift_settings['secret']
+                'secret': settings['secret']
             }
         )
 
@@ -102,10 +102,10 @@ class IntershiftPlugin(SSOPluginBase):
     def _generate_login_url(self, site_name, username):
         """ Generate and return a login URL from site_name and username. """
 
-        intershift_settings = self.get_settings()
+        settings = self.get_settings()
 
         cache_key = self._get_cache_key(site_name, username)
-        cache_timeout = intershift_settings['key_expiration']
+        cache_timeout = settings['key_expiration']
 
         # Attempt to get key from cache
         login_url = cache.get(cache_key)
@@ -148,13 +148,13 @@ class IntershiftPlugin(SSOPluginBase):
     def get_login_urls(self, request):
         """ Return login URLs for all configured sites. """
 
-        intershift_settings = self.get_settings()
+        settings = self.get_settings()
 
         login_urls = {}
 
         # Only perform for logged in users
         if request.user.is_authenticated():
-            for site_name, site in intershift_settings['sites'].iteritems():
+            for site_name, site in settings['sites'].iteritems():
 
                 # Determine whether user has access rights
                 has_access = site.get('has_access', lambda request: True)
