@@ -36,6 +36,8 @@ class SSOPluginBase(object):
         """ Setup a Requests session. """
 
         self.session = requests.Session()
+        self.session.verify = True
+        self.session.timeout = url_sso_settings.REQUEST_TIMEOUT
 
     def get_settings(self):
         """
@@ -72,8 +74,7 @@ class SSOPluginBase(object):
 
         try:
             r = self.session.get(
-                url, params=params,
-                verify=True, timeout=url_sso_settings.REQUEST_TIMEOUT
+                url, params=params
             )
         except requests.exceptions.RequestException, e:
             # Raise exception, retaining original traceback
