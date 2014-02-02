@@ -41,7 +41,7 @@ class iProvaPlugin(SSOPluginBase):
         root_url = settings['root_url']
 
         webservice_url = (
-            root_url + '/Management/Webservices/UserManagementAPI.asmx?WSDL'
+            root_url + 'Management/Webservices/UserManagementAPI.asmx?WSDL'
         )
 
         client = suds.client.Client(
@@ -133,7 +133,7 @@ class iProvaPlugin(SSOPluginBase):
                     self.settings_name, service.upper()
                 )
 
-                url = '{0}/{1}/'.format(
+                url = '{0}{1}/'.format(
                     settings['root_url'], service
                 )
 
