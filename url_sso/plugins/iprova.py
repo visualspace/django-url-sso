@@ -75,10 +75,7 @@ class iProvaPlugin(SSOPluginBase):
             raise RequestKeyException('Error in SOAP request: %s' % e), \
                 None, traceback
 
-        import ipdb; ipdb.set_trace()
-        # Do something to obtain the token
-
-        return token
+        return result
 
     def _get_cache_key(self, username):
         """ Return a sensible cache key for username. """
@@ -122,11 +119,12 @@ class iProvaPlugin(SSOPluginBase):
         assert 'root_url' in settings
         assert 'services' in settings
 
+        login_urls = {}
+
         if request.user.is_authenticated():
             # Get token
             token = self._get_login_token(request.user.username)
 
-            login_urls = {}
             for service in settings['services']:
                 # Generate key, e.g. 'IPROVA_MANAGEMENT_SSO_URL'
                 url_key = '{0}_{1}_SSO_URL'.format(
@@ -139,8 +137,7 @@ class iProvaPlugin(SSOPluginBase):
 
                 login_urls[url_key] = self._generate_login_url(url, token)
 
-        # Not logged in, return no login URL's
-        return {}
+        return login_urls
 
 
 # Instantiate singleton
