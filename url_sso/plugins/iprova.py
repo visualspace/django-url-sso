@@ -46,7 +46,7 @@ class iProvaPlugin(SSOPluginBase):
 
         client = suds.client.Client(
             webservice_url,
-            transport=suds_requests.RequestsTransport()
+            transport=suds_requests.RequestsTransport(self.session)
         )
 
         return client.service
