@@ -44,6 +44,14 @@ There are two types of settigns in this package: common settings across plugins 
         'url_sso.plugins.iprova.iprova_plugin'
     ]
 
+Also, be sure to enable the RequestContextProcessor if you want the URL's to be available in your template context (and you do)::
+
+    TEMPLATE_CONTEXT_PROCESSORS = [
+        ...
+        'url_sso.context_processors.login_urls'
+        ...
+    ]
+
 Plugins
 =======
 Currently, SSO for two systems are implemented:
@@ -54,6 +62,10 @@ Currently, SSO for two systems are implemented:
 Intershift
 ~~~~~~~~~~
 Plugin name: `url_sso.plugins.intershift.intershift_plugin`
+
+For each configured site in `sites` (see below), this plugin makes a URL available by the following name::
+
+    `INTERSHIFT_<SITENAME>_SSO_URL`
 
 Settings
 ********
@@ -88,6 +100,14 @@ Example settings::
 Infoland iProva
 ~~~~~~~~~~~~~~~
 Plugin name: `url_sso.plugins.iprova.iprova_plugin`
+
+This plugin makes the following login URL's available, depending on which services are configured in the `services` setting below:
+
+* `IPROVA_MANAGEMENT_SSO_URL`
+* `IPROVA_IDOCUMENT_SSO_URL`
+* `IPROVA_IPORTAL_SSO_URL`
+* `IPROVA_ITASK_SSO_URL`
+
 
 Settings
 ********
