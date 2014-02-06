@@ -75,7 +75,7 @@ class iProvaPlugin(SSOPluginBase):
 
             result = webservice.GetTokenForUser(
                 strTrustedApplicationID=application_id,
-                strLogincode=username
+                strLoginCode=username
             )
 
         except Exception, e:
