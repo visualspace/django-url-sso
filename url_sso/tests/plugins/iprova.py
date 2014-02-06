@@ -22,13 +22,14 @@ import os
 from mock import Mock, patch
 from httmock import HTTMock
 
+from django.core import cache
+
 from django.test import TestCase
 from django.test.utils import override_settings
-from django.core.cache import cache
 
+from url_sso.plugins import iprova
 from url_sso.plugins.iprova import iprova_plugin
 from url_sso.tests.utils import RequestTestMixin, UserTestMixin
-
 
 # Setup test settings
 iprova_settings = {
@@ -55,6 +56,25 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
     """ Tests for iProva SSO """
 
     test_token = '3f5c99f7d8214862afa8c27826b78e14'
+
+    def setUp(self):
+        # Setup local memory cache for tests
+        # Source: http://www.2general.com/blog/2012/08/09/changing_django_cache_backend_between_test_cases.html
+        self.locmem_cache = cache.get_cache(
+            'django.core.cache.backends.locmem.LocMemCache')
+        self.locmem_cache.clear()
+
+        # Note: the reason this code is not generalized is because the
+        # module is passed as an argument to patch()
+        self.cache_patch = patch.object(
+            iprova, 'cache', self.locmem_cache
+        )
+        self.cache_patch.start()
+
+        super(iProvaTests, self).setUp()
+
+    def tearDown(self):
+        self.cache_patch.stop()
 
     def test_get_webservice(self):
         """ Use test WSDL to check whether or not SUDS is broken. """
@@ -95,7 +115,6 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
         # Repeating same request should not actually fire
         with HTTMock(lambda url, request: self.fail('Expected one request.')):
             iprova_plugin._get_webservice()
-
 
     @patch('url_sso.plugins.iprova.iprova_plugin._get_webservice')
     def test_request_token(self, mock_method):

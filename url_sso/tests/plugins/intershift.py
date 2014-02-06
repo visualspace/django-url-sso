@@ -17,15 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from mock import patch
 from httmock import urlmatch, HTTMock
+
+from django.core import cache
 
 from django.test import TestCase
 from django.test.utils import override_settings
 
 from url_sso.context_processors import login_urls
-from url_sso.plugins.intershift import intershift_plugin
 from url_sso.tests.utils import RequestTestMixin, UserTestMixin
 from url_sso.exceptions import RequestKeyException
+
+from url_sso.plugins import intershift
+from url_sso.plugins.intershift import intershift_plugin
 
 
 # Setup sensible test settings
@@ -70,6 +75,25 @@ class IntershiftTests(RequestTestMixin, UserTestMixin, TestCase):
         'INTERSHIFT_SITE2_SSO_URL': 'https://customer1.intershift.nl/site2/cust/singlesignon.asp?user=john&key=BOGUSKEY',
         'INTERSHIFT_SITE3_SSO_URL': 'https://customer1.intershift.nl/site3/cust/singlesignon.asp?user=john&key=BOGUSKEY'
     }
+
+    def setUp(self):
+        # Setup local memory cache for tests
+        # Source: http://www.2general.com/blog/2012/08/09/changing_django_cache_backend_between_test_cases.html
+        self.locmem_cache = cache.get_cache(
+            'django.core.cache.backends.locmem.LocMemCache')
+        self.locmem_cache.clear()
+
+        # Note: the reason this code is not generalized is because the
+        # module is passed as an argument to patch()
+        self.cache_patch = patch.object(
+            intershift, 'cache', self.locmem_cache
+        )
+        self.cache_patch.start()
+
+        super(IntershiftTests, self).setUp()
+
+    def tearDown(self):
+        self.cache_patch.stop()
 
     def test_get_site_url(self):
         """ Test _get_site_url() """
