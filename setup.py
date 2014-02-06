@@ -31,7 +31,7 @@ except:
 
 setup(
     name='django-url-sso',
-    version='0.1',
+    version='0.9',
     description='Generate login URL\'s for unstandardized SSO systems.',
     long_description=README,
     install_requires=REQUIREMENTS,
@@ -42,7 +42,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     classifiers=(
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
