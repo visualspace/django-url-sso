@@ -51,7 +51,9 @@ class iProvaPlugin(SSOPluginBase):
         client = suds.client.Client(
             webservice_url,
             transport=suds_requests.RequestsTransport(self.session),
-            cache=suds_cache
+            cache=suds_cache,
+            # Cache WSDL (pickled) object (not whole tokens)
+            cachingpolicy=1
         )
 
         assert client.options.cache == suds_cache
