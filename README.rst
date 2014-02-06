@@ -1,6 +1,6 @@
-=================
+==============
 django-url-sso
-=================
+==============
 
 .. image:: https://badge.fury.io/py/django-url-sso.png
     :target: http://badge.fury.io/py/django-url-sso
@@ -16,11 +16,15 @@ Generate login URL's for unstandardized SSO systems.
 
 What is it?
 ===========
-TO BE DONE
+We all know it is better for single sign-on systems to make use of properly standardized, tested and known secure protocols. That it is bad practise to put login tokens in HTTP query parameters.
+
+However, sometimes things just aren't as you wish they would be. Bad API's are out there and are numerous. And sometimes, we cannot avoid having to talk to them. That's what this module is for:
+
+**It allows configurable plugins to generate login URL's and use a RequestContextProcessor to make them available in templates.**
 
 Status
 ======
-Early alpha. Don't use it, unless you're willing to fix issues.
+Well tested and stable, though documentation is still a work in progress.
 
 Compatibility
 =============
@@ -30,6 +34,79 @@ Requirements
 ============
 Please refer to `requirements.txt <http://github.com/visualspace/django-url-sso/blob/master/requirements.txt>`_
 for an updated list of required packages.
+
+Settings
+========
+There are two types of settigns in this package: common settings across plugins and plugin specifc settings. Currently the only common setting is `URL_SSO_PLUGINS` which lists the enabled plugins. Example::
+
+    URL_SSO_PLUGINS = [
+        'url_sso.plugins.intershift.intershift_plugin',
+        'url_sso.plugins.iprova.iprova_plugin'
+    ]
+
+Plugins
+=======
+Currently, SSO for two systems are implemented:
+
+* `Intershift <https://www.intershift.nl/>`_
+* `Infoland iProva <http://www.infoland.nl/producten/iprova>`_
+
+Intershift
+~~~~~~~~~~
+Plugin name: `url_sso.plugins.intershift.intershift_plugin`
+
+Settings
+********
+
+Example settings::
+
+    URL_SSO_INTERSHIFT = {
+        # Secret key as specified by Intershift
+        'secret': '12345678',
+        # Sites enabled for SSO
+        'sites': {
+            'site1': {
+                # Users never have access to site1
+                'has_access': lambda request: False,
+                'url': 'https://customer1.intershift.nl/site1/cust/singlesignon.asp',
+            },
+            'site2': {
+                # Users always have acces to site2
+                'has_access': lambda request: True,
+                'url': 'https://customer1.intershift.nl/site2/cust/singlesignon.asp',
+            },
+            'site3': {
+                # No explicit access rules; same result as site2
+                'url': 'https://customer1.intershift.nl/site3/cust/singlesignon.asp',
+            },
+        },
+        # Key expiration in seconds, use one day here
+        'key_expiration': 86400
+    }
+
+
+Infoland iProva
+~~~~~~~~~~~~~~~
+Plugin name: `url_sso.plugins.iprova.iprova_plugin`
+
+Settings
+********
+
+Example settings::
+
+    URL_SSO_IPROVA = iprova_settings = {
+        # Service root URL
+        'root_url': 'http://intranet.organisation.com/',
+
+        # Services available for SSO
+        'services': ('management', 'idocument', 'iportal', 'itask'),
+
+        # Key expiration in seconds, use one hour here
+        'key_expiration': 3600,
+
+        'application_id': 'SharepointIntranet_Production'
+    }
+
 
 Tests
 ==========
