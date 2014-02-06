@@ -39,7 +39,7 @@ def login_urls(request):
         except RequestKeyException:
             # Log the stack trace but don't make the context processor fail
             logger.exception(
-                'Error requesting login key for %(plugin)s', sso_plugin
+                'Error requesting login key for %s', sso_plugin
             )
 
             # Continue to next SSO plugin

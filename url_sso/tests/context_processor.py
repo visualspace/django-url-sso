@@ -29,7 +29,7 @@ from .utils import RequestTestMixin
 
 
 class ContextProcessorTests(RequestTestMixin, TestCase):
-    """ Test for context processor. """
+    """ Test for context processor """
 
     def test_no_plugins(self):
         """ Test login URL's when no plugins are configured """
@@ -47,6 +47,18 @@ class ContextProcessorTests(RequestTestMixin, TestCase):
             self.assertEquals(
                 login_urls(self.request),
                 mock_plugin_one.bogus_dict
+            )
+
+    def test_exception(self):
+        """ Test with a mock plugin raising a RequestKeyException """
+
+        sso_plugins = ['url_sso.tests.mock_plugins.mock_plugin_exception']
+
+        with self.settings(URL_SSO_PLUGINS=sso_plugins):
+            # This should yield no exception but return an empty dict
+            self.assertEquals(
+                login_urls(self.request),
+                {}
             )
 
     def test_two_plugins(self):

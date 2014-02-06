@@ -19,6 +19,7 @@
 
 """ Mock plugins used for testing. """
 
+from url_sso.exceptions import RequestKeyException
 from url_sso.plugins.base import SSOPluginBase
 
 
@@ -31,6 +32,13 @@ class MockPluginOne(SSOPluginBase):
 
     def get_login_urls(self, request):
         return self.bogus_dict
+
+
+class MockPluginException(SSOPluginBase):
+    settings_name = 'EXCEPTION'
+
+    def get_login_urls(self, request):
+        raise RequestKeyException('bananas')
 
 
 class MockPluginTwo(SSOPluginBase):
@@ -46,4 +54,5 @@ class MockPluginTwo(SSOPluginBase):
 
 # Instantiate singletons
 mock_plugin_one = MockPluginOne()
+mock_plugin_exception = MockPluginException()
 mock_plugin_two = MockPluginTwo()
