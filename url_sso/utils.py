@@ -19,6 +19,9 @@
 
 from django.conf import settings as django_settings
 from django.utils.importlib import import_module
+from django.core.cache import cache
+
+from suds.cache import Cache
 
 
 class Singleton(type):
@@ -90,6 +93,30 @@ class SettingsBase(object):
             raise AttributeError(
                 'No setting or default available for \'%s\'' % attr
             )
+
+
+class SudsDjangoCache(Cache):
+    """
+    Implement the suds cache interface using Django caching.
+    Source: https://github.com/dpoirier/basket/blob/master/news/backends/exacttarget.py
+    """
+    def __init__(self, days=None, *args, **kwargs):
+        if days:
+            self.timeout = 24 * 60 * 60 * days
+        else:
+            self.timeout = None
+
+    def _cache_key(self, id):
+        return "suds-%s" % id
+
+    def get(self, id):
+        return cache.get(self._cache_key(id))
+
+    def put(self, id, value):
+        cache.set(self._cache_key(id), value, self.timeout)
+
+    def purge(self, id):
+        cache.delete(self._cache_key(id))
 
 
 def import_object(from_path):

@@ -17,10 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 from mock import Mock, patch
+from httmock import HTTMock
 
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.core.cache import cache
 
 from url_sso.plugins.iprova import iprova_plugin
 from url_sso.tests.utils import RequestTestMixin, UserTestMixin
@@ -52,27 +56,46 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
 
     test_token = '3f5c99f7d8214862afa8c27826b78e14'
 
-    @patch('suds.client.Client')
-    def test_get_webservice(self, mock_method):
-        """ Test _get_webservice() """
-        class MockMonkey(object):
-            service = 'nice'
+    def test_get_webservice(self):
+        """ Use test WSDL to check whether or not SUDS is broken. """
 
-        mock_method.return_value = MockMonkey
-        returned_service = iprova_plugin._get_webservice()
+        # Setup mock response
+        directory = os.path.dirname(__file__)
+        test_wsdl = open(os.path.join(
+            directory, 'iprova_usermanagement_wsdl.xml'
+        )).read()
 
-        # Basically, all we can test is whether it returns something
-        self.assertEquals(returned_service, 'nice')
+        def wsdl_mock(url, request):
+            self.assertEquals(
+                url.geturl(),
+                'http://intranet.organisation.com/'
+                'Management/Webservices/UserManagementAPI.asmx?WSDL'
+            )
 
-        mock_method.assert_called_once()
+            return test_wsdl
 
-        # Make sure the proper URL is used in one of the arguments
-        self.assertIn(
-            'http://intranet.organisation.com/'
-            'Management/Webservices/UserManagementAPI.asmx?WSDL',
-            # Merge positional and keyword arguments
-            list(mock_method.call_args[0]) + mock_method.call_args[1].values()
-        )
+        with HTTMock(wsdl_mock):
+            service = iprova_plugin._get_webservice()
+
+        # Assert the used method is available in WSDL
+        self.assertTrue(hasattr(service, 'GetTokenForUser'))
+
+    def test_get_webservice_cache(self):
+        """ Test caching for WSDL files """
+
+        # Setup mock response
+        directory = os.path.dirname(__file__)
+        test_wsdl = open(os.path.join(
+            directory, 'iprova_usermanagement_wsdl.xml'
+        )).read()
+
+        with HTTMock(lambda url, request: test_wsdl):
+            iprova_plugin._get_webservice()
+
+        # Repeating same request should not actually fire
+        with HTTMock(lambda url, request: self.fail('Expected one request.')):
+            iprova_plugin._get_webservice()
+
 
     @patch('url_sso.plugins.iprova.iprova_plugin._get_webservice')
     def test_request_token(self, mock_method):

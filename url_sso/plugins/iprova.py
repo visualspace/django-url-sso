@@ -26,8 +26,10 @@ import suds_requests
 
 from django.core.cache import cache
 
-from url_sso.plugins.base import SSOPluginBase
 from url_sso.exceptions import RequestKeyException
+from url_sso.utils import SudsDjangoCache
+
+from url_sso.plugins.base import SSOPluginBase
 
 
 class iProvaPlugin(SSOPluginBase):
@@ -44,10 +46,15 @@ class iProvaPlugin(SSOPluginBase):
             root_url + 'Management/Webservices/UserManagementAPI.asmx?WSDL'
         )
 
+        suds_cache = SudsDjangoCache()
+
         client = suds.client.Client(
             webservice_url,
-            transport=suds_requests.RequestsTransport(self.session)
+            transport=suds_requests.RequestsTransport(self.session),
+            cache=suds_cache
         )
+
+        assert client.options.cache == suds_cache
 
         return client.service
 
