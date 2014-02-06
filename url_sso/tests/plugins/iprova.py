@@ -36,8 +36,8 @@ iprova_settings = {
     # Services available for SSO
     'services': ('management', 'idocument', 'iportal', 'itask'),
 
-    # Key expiration in seconds, use one day here
-    'key_expiration': 86400,
+    # Key expiration in seconds, use one hour here
+    'key_expiration': 3600,
 
     'application_id': 'SharepointIntranet_Production'
 }
