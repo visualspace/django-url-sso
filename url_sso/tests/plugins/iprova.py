@@ -113,7 +113,7 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
 
         mock_soap_call.assert_called_once_with(
             strTrustedApplicationID=iprova_settings['application_id'],
-            strLogincode='test_user'
+            strLoginCode='test_user'
         )
 
         self.assertEquals(token, self.test_token)
