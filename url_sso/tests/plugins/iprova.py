@@ -22,10 +22,8 @@ from mock import Mock, patch
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from url_sso.context_processors import login_urls
 from url_sso.plugins.iprova import iprova_plugin
 from url_sso.tests.utils import RequestTestMixin, UserTestMixin
-from url_sso.exceptions import RequestKeyException
 
 
 # Setup test settings
