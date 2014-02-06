@@ -128,13 +128,30 @@ class iProvaPlugin(SSOPluginBase):
         assert 'root_url' in settings
         assert 'services' in settings
 
+        # Method to determine access for request (user), service
+        has_access = settings.get(
+            'has_access', lambda request, service: True
+        )
+
         login_urls = {}
 
         if request.user.is_authenticated():
-            # Get token
-            token = self._get_login_token(request.user.username)
+
+            # Start out with empty token to prevent requesting data for
+            # users without permission
+            token = None
 
             for service in settings['services']:
+                # Determine whether user has access rights
+                if not has_access(request, service):
+                    # has_access(request) is defined and user does not have
+                    # access to this site - skip.
+                    continue
+
+                if not token:
+                    # Get token
+                    token = self._get_login_token(request.user.username)
+
                 # Generate key, e.g. 'IPROVA_MANAGEMENT_SSO_URL'
                 url_key = '{0}_{1}_SSO_URL'.format(
                     self.settings_name, service.upper()

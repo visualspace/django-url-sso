@@ -81,6 +81,7 @@ Example settings::
                 # Users never have access to site1
                 'has_access': lambda request: False,
                 'url': 'https://customer1.intershift.nl/site1/cust/singlesignon.asp',
+                'has_access': lambda request: request.user.groups.filter(name='some_group').exists()
             },
             'site2': {
                 # Users always have acces to site2
@@ -124,7 +125,9 @@ Example settings::
         # Key expiration in seconds, use one hour here
         'key_expiration': 3600,
 
-        'application_id': 'SharepointIntranet_Production'
+        'application_id': 'SharepointIntranet_Production',
+
+        'has_access': lambda request, service: request.user.groups.filter(name='some_group').exists()
     }
 
 

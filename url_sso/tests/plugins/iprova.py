@@ -196,17 +196,37 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
 
         mock_method.assert_called_once_with(self.user.username)
 
-    def test_integration(self):
-        """ Test integration with login_urls() RequestContextProcessor """
+    @patch('url_sso.plugins.iprova.iprova_plugin._get_login_token')
+    def test_has_access(self, mock_method):
+        """ Test get_login_urls() with has_access = False """
 
         # Make sure user is set on the request
         self.request.user = self.user
 
-        # Mock SOAP request
+        mock_method.return_value = self.test_token
 
-        # context = login_urls(self.request)
+        local_settings = sso_settings.copy()
+        local_settings['URL_SSO_IPROVA']['has_access'] = \
+            lambda request, service: False
 
-        # self.assertEquals(
-        #     context,
-        #     self.test_login_urls
-        # )
+        with override_settings(**local_settings):
+            urls = iprova_plugin.get_login_urls(self.request)
+
+        self.assertEquals(urls, {})
+
+        # No request should have been sent out
+        self.assertFalse(mock_method.called)
+
+        # Now test with just one service allowed
+        local_settings['URL_SSO_IPROVA']['has_access'] = \
+            lambda request, service: service == 'iportal'
+
+        with override_settings(**local_settings):
+            urls = iprova_plugin.get_login_urls(self.request)
+
+        self.assertEquals(urls, {
+            'IPROVA_IPORTAL_SSO_URL':
+                'http://intranet.organisation.com/iportal/?token=' + self.test_token,
+        })
+
+        mock_method.assert_called_once_with(self.user.username)
