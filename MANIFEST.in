@@ -4,8 +4,11 @@ include COPYRIGHT
 include LICENSE
 include README.rst
 
-# Fixtures, templates, static files, strings and test data
+# Fixtures, templates, static files, strings
 recursive-include url_sso/fixtures *
 recursive-include url_sso/templates *
 recursive-include url_sso/static *
 recursive-include url_sso/locale *
+
+# Plugin test data
+recursive-include url_sso/tests/data *

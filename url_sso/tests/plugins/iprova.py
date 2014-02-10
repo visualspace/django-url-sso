@@ -72,7 +72,7 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
         self.cache_patch.start()
 
         # Setup test WSDL for mock responses
-        directory = os.path.dirname(__file__)
+        directory = os.path.join(os.path.dirname(__file__), '..', 'data')
 
         self.test_wsdl = open(os.path.join(
             directory, 'iprova_usermanagement_wsdl.xml'
