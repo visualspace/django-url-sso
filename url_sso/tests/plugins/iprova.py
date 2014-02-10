@@ -79,10 +79,15 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
     def test_get_webservice(self):
         """ Use test WSDL to check whether or not SUDS is broken. """
 
-        # Setup mock response
+        # Setup mock responses
         directory = os.path.dirname(__file__)
+
         test_wsdl = open(os.path.join(
             directory, 'iprova_usermanagement_wsdl.xml'
+        )).read()
+
+        test_response = open(os.path.join(
+            directory, 'iprova_token_response.xml'
         )).read()
 
         def wsdl_mock(url, request):
@@ -100,6 +105,17 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
         # Assert the used method is available in WSDL
         self.assertTrue(hasattr(service, 'GetTokenForUser'))
 
+        def response_mock(url, request):
+            return test_response.format(token='test_token')
+
+        with HTTMock(response_mock):
+            answer = service.GetTokenForUser(
+                strTrustedApplicationID=iprova_settings['application_id'],
+                strLoginCode='test_user'
+            )
+
+        self.assertEquals(answer, 'test_token')
+
     def test_get_webservice_cache(self):
         """ Test caching for WSDL files """
 
@@ -109,12 +125,38 @@ class iProvaTests(RequestTestMixin, UserTestMixin, TestCase):
             directory, 'iprova_usermanagement_wsdl.xml'
         )).read()
 
+        test_response = open(os.path.join(
+            directory, 'iprova_token_response.xml'
+        )).read()
+
         with HTTMock(lambda url, request: test_wsdl):
-            iprova_plugin._get_webservice()
+            service = iprova_plugin._get_webservice()
 
         # Repeating same request should not actually fire
         with HTTMock(lambda url, request: self.fail('Expected one request.')):
             iprova_plugin._get_webservice()
+
+        def response_mock_1(url, request):
+            return test_response.format(token='test_token_2')
+
+        def response_mock_2(url, request):
+            return test_response.format(token='test_token_3')
+
+        with HTTMock(response_mock_1):
+            answer = service.GetTokenForUser(
+                strTrustedApplicationID=iprova_settings['application_id'],
+                strLoginCode='test_user'
+            )
+
+        self.assertEquals(answer, 'test_token_2')
+
+        with HTTMock(response_mock_2):
+            answer = service.GetTokenForUser(
+                strTrustedApplicationID=iprova_settings['application_id'],
+                strLoginCode='test_user'
+            )
+
+        self.assertEquals(answer, 'test_token_3')
 
     @patch('url_sso.plugins.iprova.iprova_plugin._get_webservice')
     def test_request_token(self, mock_method):
